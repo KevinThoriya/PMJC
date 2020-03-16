@@ -17,7 +17,8 @@
                 'web',
                 'crm',
                 'sale',
-                'project'
+                'project',
+		'hr_timesheet'
                 ],
 
     # always loaded
