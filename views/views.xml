@@ -1,0 +1,192 @@
+<odoo>
+    <data>
+
+
+        <menuitem id="crm.crm_team_config"
+            name="Sales Channels123"
+            groups="aproject.hidden"
+            parent="crm.crm_menu_config"
+            action="sales_team.sales_team_config_action"
+            sequence="5"/>
+        <menuitem id="crm.sales_team_menu_report_crm"
+            name="Sales Channels"
+            groups="aproject.hidden"
+            sequence="10"/>
+
+        <!--LEAD REPORTING CHANGES IN SEARCH VIEW-->
+        <record id="remove_sale_fields_in_search_view_lead" model="ir.ui.view">
+            <field name="name">crm.opportunity.report.select.remove.sale.fields</field>
+            <field name="model">crm.opportunity.report</field>
+            <field name="inherit_id" ref="crm.crm_opportunity_report_view_search"></field>
+            <field name="arch" type="xml">
+                <xpath expr="//group[2]/filter[1]" position="replace"></xpath>
+                <xpath expr="//group[2]/filter[1]" position="replace"></xpath>
+                <xpath expr="//field[@name='user_id']" position="replace"></xpath>
+                <xpath expr="//field[@name='team_id']" position="replace"></xpath>
+            </field>
+        </record>
+
+        <!--LEAD FORM VIEW CHANGE-->
+        <record id="remove_sale_change_form_of_leads" model="ir.ui.view">
+            <field name="name">crm.lead.form.lead</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_leads"></field>
+            <field name="arch" type="xml">
+                <xpath expr="//group[1]/group[3]/field[@name='user_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[1]/group[3]/field[@name='team_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[1]/group[4]/field[@name='priority']" position="replace">
+                </xpath>
+                <xpath expr="//group[1]/group[3]" position="inside">
+                    <field name="priority" widget="priority"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!--LEAD TREE VIEW CHANGE-->
+        <record id="remove_sale_fields_tree_leads" model="ir.ui.view">
+            <field name="name">crm.lead.tree.lead</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_leads" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='team_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        
+         <!--OPPORTUNITY FORM VIEW CHANGE-->
+        <record id="remove_sale_change_form_of_opportunities" model="ir.ui.view">
+            <field name="name">crm.lead.form.lead</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_oppor"></field>
+            <field name="arch" type="xml">
+                <xpath expr="//group[1]/group[3]/field[@name='user_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[1]/group[3]/field[@name='team_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[1]/group[4]/field[@name='priority']" position="replace">
+                </xpath>
+                <xpath expr="//group[1]/group[3]" position="inside">
+                    <field name="priority" widget="priority"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!--LEAD TO OPPORTUINTY WIDGET CHAGE-->
+        <record id="remove_sale_fields_lead2oppprt_wigzet" model="ir.ui.view">
+            <field name="name">crm.lead2opportunity.partner.form</field>
+            <field name="model">crm.lead2opportunity.partner</field>
+            <field name="inherit_id" ref="crm.view_crm_lead2opportunity_partner"></field>
+            <field name="arch" type="xml">
+                <xpath expr="//form/group[2]" position="replace"></xpath>
+            </field>
+        </record>
+
+        <!--QUOTATION FORM VIEW-->
+        <record id="change_Quotation_form_view" model="ir.ui.view">
+            <field name="name">sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form" />
+            <field name="arch" type="xml">
+
+                <!--heder statebar -->
+                <xpath expr="//field[@name='state']" position="replace">
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,project"/>
+                </xpath>
+
+                <!--sale order in other information tab-->
+                <xpath expr="//group[@name='sales_person']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!--convert to project BUTTON -->
+                <xpath expr="//button[@name='action_confirm']" position="replace">
+                    <button name="aproject.q2p_widget_action"
+                        string="Confirm Project" type="action" class="oe_highlight"
+                        attrs="{'invisible': [('state', 'not in', ['sent'])]}"
+                        context="{'default_partner_id': partner_id}"/>
+                </xpath>
+                <xpath expr="//button[@name='action_confirm']" position="replace">
+                    <button name="aproject.q2p_widget_action"
+                        string="Confirm Project" type="action" class="oe_highlight"
+                        attrs="{'invisible': [('state', 'not in', ['draft'])]}"
+                    context="{'default_partner_id': partner_id}"/>
+                </xpath>
+
+
+            </field>
+        </record>
+
+
+
+
+
+
+
+
+        <!-- explicit list view def
+    inition -->
+    <!--
+    <record model="ir.ui.view" id="aproject.list">
+      <field name="name">Aproject list</field>
+      <field name="model">aproject.aproject</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+    -->
+
+    <!-- actions opening views on models -->
+    <!--
+    <record model="ir.actions.act_window" id="aproject.action_window">
+      <field name="name">Aproject window</field>
+      <field name="res_model">aproject.aproject</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    -->
+
+    <!-- server action to the one above -->
+    <!--
+    <record model="ir.actions.server" id="aproject.action_server">
+      <field name="name">Aproject server</field>
+      <field name="model_id" ref="model_aproject_aproject"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": self._name,
+        }
+      </field>
+    </record>
+    -->
+
+    <!-- Top menu item -->
+    <!--
+    <menuitem name="Aproject" id="aproject.menu_root"/>
+    -->
+    <!-- menu categories -->
+    <!--
+    <menuitem name="Menu 1" id="aproject.menu_1" parent="aproject.menu_root"/>
+    <menuitem name="Menu 2" id="aproject.menu_2" parent="aproject.menu_root"/>
+    -->
+    <!-- actions -->
+    <!--
+    <menuitem name="List" id="aproject.menu_1_list" parent="aproject.menu_1"
+              action="aproject.action_window"/>
+    <menuitem name="Server to list" id="aproject" parent="aproject.menu_2"
+              action="aproject.action_server"/>
+    -->
+  </data>
+</odoo>

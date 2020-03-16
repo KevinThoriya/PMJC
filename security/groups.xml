@@ -1,0 +1,7 @@
+<odoo>
+    <data>
+        <record id='aproject.hidden' model='res.groups'>
+            <field name="name"> Hidden </field>
+        </record>
+    </data>
+</odoo>
