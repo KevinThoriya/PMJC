@@ -14,11 +14,9 @@
 
     'depends': ['base',
                 'analytic',
-                'web',
                 'crm',
-                'sale',
                 'project',
-		'hr_timesheet'
+                'hr_timesheet'
                 ],
 
     # always loaded
@@ -27,8 +25,9 @@
         'security/groups.xml',
         'views/templates.xml',
         'views/crone_job.xml',
-        'views/views.xml',
+        # 'views/views.xml',
         'views/views_workitem.xml',
+        'views/project_project.xml',
         'widget/views/views.xml'
     ],
     # only loaded in demonstration mode

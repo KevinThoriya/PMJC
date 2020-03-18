@@ -119,74 +119,7 @@
                         attrs="{'invisible': [('state', 'not in', ['draft'])]}"
                     context="{'default_partner_id': partner_id}"/>
                 </xpath>
-
-
             </field>
         </record>
-
-
-
-
-
-
-
-
-        <!-- explicit list view def
-    inition -->
-    <!--
-    <record model="ir.ui.view" id="aproject.list">
-      <field name="name">Aproject list</field>
-      <field name="model">aproject.aproject</field>
-      <field name="arch" type="xml">
-        <tree>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
-        </tree>
-      </field>
-    </record>
-    -->
-
-    <!-- actions opening views on models -->
-    <!--
-    <record model="ir.actions.act_window" id="aproject.action_window">
-      <field name="name">Aproject window</field>
-      <field name="res_model">aproject.aproject</field>
-      <field name="view_mode">tree,form</field>
-    </record>
-    -->
-
-    <!-- server action to the one above -->
-    <!--
-    <record model="ir.actions.server" id="aproject.action_server">
-      <field name="name">Aproject server</field>
-      <field name="model_id" ref="model_aproject_aproject"/>
-      <field name="state">code</field>
-      <field name="code">
-        action = {
-          "type": "ir.actions.act_window",
-          "view_mode": "tree,form",
-          "res_model": self._name,
-        }
-      </field>
-    </record>
-    -->
-
-    <!-- Top menu item -->
-    <!--
-    <menuitem name="Aproject" id="aproject.menu_root"/>
-    -->
-    <!-- menu categories -->
-    <!--
-    <menuitem name="Menu 1" id="aproject.menu_1" parent="aproject.menu_root"/>
-    <menuitem name="Menu 2" id="aproject.menu_2" parent="aproject.menu_root"/>
-    -->
-    <!-- actions -->
-    <!--
-    <menuitem name="List" id="aproject.menu_1_list" parent="aproject.menu_1"
-              action="aproject.action_window"/>
-    <menuitem name="Server to list" id="aproject" parent="aproject.menu_2"
-              action="aproject.action_server"/>
-    -->
   </data>
 </odoo>

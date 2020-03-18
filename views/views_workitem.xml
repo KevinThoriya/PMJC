@@ -24,6 +24,8 @@
                     <field name="reason"></field>
                     <field name="areapath_id"></field>
                     <field name="iteration_id"></field>
+                    <field name="week"></field>
+                    <field name="emp_id"></field>
                 </xpath>
 
                 <xpath expr="//notebook/page[@name='extra_info']" position="before">
@@ -204,7 +206,22 @@
             <field name="context">{'search_default_workitems': 1 }</field>
         </record>
 
+        <record model="ir.ui.view" id="inherit_view_task_kanban">
+            <field name="name">project.task.kanban</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_kanban"></field>
+            <field name="arch" type="xml">
 
+                <xpath expr="//field[@name='active']" position="after">
+                    <field name="progress"></field>
+                </xpath>
+
+                <xpath expr="//t[@t-name='kanban-box']/div[1]" position="attributes">
+                    <attribute name="style"></attribute>
+                    <attribute name="t-attf-style">background: linear-gradient(90deg, #e4fce1 #{record.progress.value}%, #ffeae8 0%);  </attribute>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
 

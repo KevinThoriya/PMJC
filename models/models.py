@@ -4,15 +4,85 @@ from odoo import models, fields, api
 from . import tools
 import datetime
 
-class Lead(models.Model):
-    _inherit = "crm.lead"
+
+class Res(models.Model):
+    _inherit = 'res.users'
+
+    employee_id = fields.Many2one('hr.employee', string="Employee")
+    @api.model
+    def create(self, val):
+        res = super(Res, self).create(val)
+        emp = self.env['hr.employee'].create(
+            {'name': res.name, 'work_email': res.login, 'user_id': res.id }
+        )
+        res.employee_id = emp.id
+        return res
 
 
-class Quotation(models.Model):
-    _inherit = "sale.order"
+class Project(models.Model):
+    _inherit = "project.project"
 
-    state = fields.Selection([('draft', 'Quotation'), ('sent', 'Quotation Sent'), ('project', 'Project'), ('done', 'Locked'), ('cancel', 'Cancelled')],
-                             string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
+    group_id = fields.Many2one('project.groups', string="Project Group")
+    start_date = fields.Date()
+    expected_end_date = fields.Date()
+    expiration_date = fields.Date()
+    priority = fields.Selection([('0', 'Null'), ('1', 'Low'), ('2', 'Medium'), ('3', 'High')])
+    milestone_ids = fields.One2many('project.milestone', 'project_id', string='Milestones')
+    employee_ids = fields.Many2many("hr.employee", string="Employees")
+    currency_id = fields.Many2one('res.currency', string='Currency')
+    amount = fields.Monetary(currency_field='currency_id')
+    unit_measure = fields.Selection([('byWeek', 'by week'), ('byMonth', 'by month'), ('byHour', 'by Hour')])
+    billing_rate = fields.Float(string="Billing Rate")
+    Actual_rate = fields.Float(string="actual Rate")
+    cost_rate_ids = fields.One2many('project.cost.rate', 'project_id', string="Cost Rate")
+    approved_rate_ids = fields.One2many('project.approved.rate','project_id', string="Approved Rate")
+    unit_of_measure = fields.Selection(string="Default Unit of Measure", selection=[('week', 'By Week'), ('hour', 'By Hour'), ('month', 'By Month')])
+    timesheet_grouping = fields.Selection(string="Default Timesheet Grouping", selection=[('week', 'By Week'), ('hour', 'By Hour'), ('month', 'By Month')])
+
+
+
+class Milestone(models.Model):
+    _name = "project.milestone"
+
+    start_date = fields.Date()
+    name = fields.Char()
+    amount = fields.Float()
+    expected_delivery_date = fields.Date()
+    actual_delivery_date = fields.Date()
+    status = fields.Selection([('0', 'not Invoiced'), ('1', 'invoiced')], default='0')
+    invoice_id = fields.Many2one('account.journal', string="Invoice")
+    invoice_line = fields.Integer()
+    approval_date = fields.Date()
+    project_id = fields.Many2one('project.project', string="Project")
+
+
+class ProjectGroup(models.Model):
+    _name = "project.groups"
+
+    name = fields.Char(string="Name of Group")
+    active = fields.Boolean(string="active", default=True)
+
+
+
+
+class CostRate(models.Model):
+    _name = "project.cost.rate"
+    _description = 'CostRate'
+
+    employee_id = fields.Many2one('hr.employee', string='Employee')
+    cost_rate = fields.Char("Cost Rate")
+    is_billable = fields.Boolean("is_billable?")
+    billing_percent = fields.Integer(string='Billing %', required=False)
+    project_id = fields.Many2one('project.project', string="Project")
+
+
+class ApprovedRate(models.Model):
+    _name = "project.approved.rate"
+    _description = 'ApprovedRate'
+
+    unit_of_measure = fields.Selection(string="Unit of Measure", selection=[('week', 'By Week'), ('hour', 'By Hour'), ('month', 'By Month')])
+    rate = fields.Float(string="Rate")
+    project_id = fields.Many2one('project.project', string="project")
 
 
 class ProjectAreapath(models.Model):
@@ -21,19 +91,6 @@ class ProjectAreapath(models.Model):
     name = fields.Char()
     active = fields.Boolean(default=True)
     project_id = fields.Many2one('project.project')
-
-
-class Project(models.Model):
-    _inherit = "project.project"
-
-    group_id = fields.Many2one('project.groups',string="Project Group")
-
-
-class ProjectGroup(models.Model):
-    _name = "project.groups"
-
-    name = fields.Char(string="Name of Group")
-    active = fields.Boolean(string="active", default=True)
 
 
 class ProjectIteration(models.Model):
@@ -65,7 +122,10 @@ class ProjectTask(models.Model):
     areapath_id = fields.Many2one('project.areapath', string="AreaPath")
     iteration_path = fields.Char()
     iteration_id = fields.Many2one('project.iteration', string="Iteration")
-    user_id = fields.Many2one('res.users', string='Assigned to', index=True, track_visibility=False)
+    week = fields.Char(compute="_compute_week", store=True, string="Week")
+    emp_id = fields.Many2one('hr.employee', string="Employee", related='user_id.employee_id', store=True)
+    user_id = fields.Many2one('res.users', string='Assigned to', index=True, track_visibility=False, default=False,
+                              related=False, store=True)
     reason = fields.Char()
     created_date = fields.Date(index=True)
     created_by_id = fields.Many2one('res.users', string='Created By')
@@ -78,7 +138,7 @@ class ProjectTask(models.Model):
                                        ('Epic', 'Epic'), ('Feature', 'Feature'), ('Feedback Request', 'Feedback Request'),
                                        ('Feedback Response', 'Feedback Response'), ('Shared Steps', 'Shared Steps'), ('Test Case', 'Test Case'),
                                        ('Test Plan', 'Test Plan'), ('Test Suite', 'Test Suite'), ('User Story', 'User Story'), ('Issue', 'Issue'),
-                                       ('Shared Parameter', 'Shared Parameter'), ('Task', 'Task')])
+                                       ('Shared Parameter', 'Shared Parameter'), ('Task', 'Task'),('Change Request','Change Request')])
     project_id = fields.Many2one('project.project', string="Project", index=True, track_visibility='onchange',
                                  default=lambda self: self.env.context.get('default_project_id'))
     stage_id = fields.Many2one('project.task.type', string='Stage', index=True, domain="[]", track_visibility='onchange')
@@ -89,7 +149,16 @@ class ProjectTask(models.Model):
     progress = fields.Float(compute='_compute_get_hours', store=False, string='Progress', group_operator="avg")
     total_hours_spent = fields.Float(compute='_compute_get_hours', store=False , string='Total Hours', help="Total Time on This Task. = remaining + compeleted")
 
-    @api.depends('task_update_ids','child_ids')
+    @api.depends('created_date')
+    def _compute_week(selfs):
+        for self in selfs:
+            if self.created_date:
+                created_date = datetime.datetime.strptime(self.created_date, "%Y-%m-%d")
+                cal = created_date.isocalendar()
+                value = f"{cal[1]}/{cal[0]}"
+                self.week = value
+
+    @api.depends('task_update_ids', 'child_ids')
     def _compute_get_hours(self):
         for this in self:
             if this.type == 'Task':
@@ -101,8 +170,10 @@ class ProjectTask(models.Model):
                 this.effective_hours = sum([i.effective_hours for i in this.child_ids])
                 this.remaining_hours = sum([i.remaining_hours for i in this.child_ids])
                 this.total_hours_spent = this.effective_hours + this.remaining_hours
-            this.progress = (this.effective_hours*100)/(this.effective_hours+this.remaining_hours) if this.effective_hours+this.remaining_hours > 0 else 0
-
+            if this.stage_id.name in ['Closed', 'Removed', 'Resolved', 'Verified']:
+                this.progress = 100
+            else:
+                this.progress = (this.effective_hours*100)/(this.effective_hours+this.remaining_hours) if this.effective_hours+this.remaining_hours > 0 else 0
 
     def get_azure_data(self):
 
@@ -113,7 +184,8 @@ class ProjectTask(models.Model):
             """
             if not ar: return None
             emp = self.env['res.users'].search([('login', '=', ar[1])])
-            if emp: return emp[0].id
+            if emp:
+                return emp[0].id
             else:
                 emp = self.env['res.users'].create(
                     {'name': ar[0], 'login': ar[1], 'password': '123'})
@@ -133,17 +205,19 @@ class ProjectTask(models.Model):
                 else:
                     workitem['parent_task_id'] = False
                     workitem['color'] = 7
-                # FIND AND SET ALL THE CHILDRENS
-                childs = []
-                for i in workitem['child_ids']:
-                    child_obj = self.env['project.task'].search([('azure_id', '=', i)],order="create_date desc")
-                    if child_obj:
-                        childs.append(child_obj[0].id)
-                workitem['child_ids'] = [[6, 0, childs]]
+                # FIND AND SET ALL THE CHILDRENS ------> "DONT NEED OF CHILD _ONLY PERENT IS ENUGH "
+                # childs = []
+                # for i in workitem['child_ids']:
+                #     child_obj = self.env['project.task'].search([('azure_id', '=', i)],order="create_date desc")
+                #     if child_obj:
+                #         childs.append(child_obj[0].id)
+                # workitem['child_ids'] = [[6, 0, childs]]
+
                 # setting employee create new is not assigning to RES.USERS
                 workitem['user_id'] = get_emp(workitem['user_id'])
                 workitem['created_by_id'] = get_emp(workitem['created_by_id'])
                 workitem['changed_by_id'] = get_emp(workitem['changed_by_id'])
+
                 # setting the project
                 project = self.env['project.project'].search([('name', '=', workitem['project_id'])],limit=1)
                 if project:
@@ -154,27 +228,30 @@ class ProjectTask(models.Model):
                     workitem['project_id'] = res.id
 
                 # setting the stage
-                stage = self.env['project.task.type'].search([('name', '=', workitem['stage_id'])],limit=1)
+                if self.azure_id == 13005 : print("here next ....")
+                if self.azure_id == 13054 : print(workitem['stage_id'])
+                stage = self.env['project.task.type'].search([('name', '=', workitem['stage_id'])], limit=1)
                 if stage:
+                    if self.azure_id == 13054 : print("stage",stage)
                     workitem['stage_id'] = stage[0].id
                 else:
                     res = self.env['project.task.type'].create({'name' : workitem['stage_id'], 'fold' : False,
                                                                 'description' : 'Azure Creation '})
                     workitem['stage_id'] = res.id
-
+                    if self.azure_id == 13054 : print(res)
                 # setting Iteration to Tasks :
                 iteration_id = self.env['project.iteration'].search([('azure_id', '=', workitem['iteration_id']),
-                                                                    ('project_id', '=', workitem['project_id'])])
+                                                                     ('project_id', '=', workitem['project_id'])])
                 if iteration_id:
                     workitem['iteration_id'] = iteration_id[0].id
                 else:
                     res = self.env['project.iteration'].create(
                         {'name':workitem['iteration_path'], 'azure_id' : workitem['iteration_id'],
-                            'project_id': workitem['project_id']})
+                         'project_id': workitem['project_id']})
                     workitem['iteration_id'] = res.id
                 # setting areapath to Tasks :
                 areapath_id = self.env['project.areapath'].search([('name', '=', workitem['areapath_id']),
-                                                                ('project_id', '=', workitem['project_id'])])
+                                                                   ('project_id', '=', workitem['project_id'])])
                 if areapath_id:
                     workitem['areapath_id'] = areapath_id[0].id
                 else:
@@ -186,11 +263,11 @@ class ProjectTask(models.Model):
                 odoo_rec = self.env['project.task'].search([('azure_id', '=', workitem['azure_id'])],order="create_date desc", limit=1)
 
                 task_dict = {'azure_id':workitem['azure_id'], 'areapath_id':workitem['areapath_id'],'iteration_path':workitem['iteration_path'],
-                            'iteration_id':workitem['iteration_id'],'user_id':workitem['user_id'],'reason':workitem['reason'],
-                            'created_date':workitem['created_date'], 'created_by_id':workitem['created_by_id'], 'priority':workitem['priority'],'color':workitem['color'],
-                            'title':workitem['title'],  'name':workitem['name'], 'description':workitem['description'], 'parent_task_id':workitem['parent_task_id'],
-                            'child_ids':workitem['child_ids'], 'type':workitem['type'], 'project_id':workitem['project_id'], 'stage_id':workitem['stage_id'],
-                            }
+                             'iteration_id':workitem['iteration_id'],'user_id':workitem['user_id'],'reason':workitem['reason'],
+                             'created_date':workitem['created_date'], 'created_by_id':workitem['created_by_id'], 'priority':workitem['priority'],'color':workitem['color'],
+                             'title':workitem['title'],  'name':workitem['name'], 'description':workitem['description'], 'parent_task_id':workitem['parent_task_id'],
+                             'type':workitem['type'], 'project_id':workitem['project_id'], 'stage_id':workitem['stage_id'],
+                             }
                 task_update_dict = {'changed_date':workitem['changed_date'], 'changed_by_id':workitem['changed_by_id'], 'original_estimate_hour':workitem['original_estimate_hour'],
                                     'remaining_work_hour':workitem['remaining_work_hour'], 'complete_work_hour':workitem['complete_work_hour'], }
 
@@ -202,8 +279,8 @@ class ProjectTask(models.Model):
                     task_update_dict.update({'task_id':odoo_rec[0].id})
 
                     if (updates
-                        and (workitem['original_estimate_hour'] != updates[0].original_estimate_hour
-                            or workitem['complete_work_hour'] != total_comp_hour)):
+                            and (workitem['original_estimate_hour'] != updates[0].original_estimate_hour
+                                 or workitem['complete_work_hour'] != total_comp_hour)):
                         if odoo_rec[0].stage_id.name == 'New':
                             updates[0].write(task_update_dict)
                         else:
@@ -216,14 +293,27 @@ class ProjectTask(models.Model):
 
         # COLLECT ALL WORKITEMS
         params = self.env['ir.config_parameter'].sudo()
-        start = my_date = datetime.datetime.strptime(params.get_param('azure.last.backup.date'), "%Y-%m-%d")
-        end = datetime.datetime.today()
-        delta = end - start
+        start =  datetime.datetime.strptime(params.get_param('azure.last.backup.date'), "%Y-%m-%d")
+        end = datetime.datetime.today().strftime('%Y-%m-%d')
         
-        for i in range(delta.days + 1):
-            date = (start + datetime.timedelta(days=i)).date()
-            all_workitem = tools.work_items(params.get_param('azure.web.address'),params.get_param('azure.token'),  date=date, on="CreatedDate", on2="ChangedDate")
-            store_odoo(all_workitem)
-            print("--------------------------------->",date)
-            params.set_param('azure.last.backup.date',date)    
-            
+        for project in self.env['project.project'].search([]):
+            all_workitem = tools.work_items(params.get_param('azure.web.address'), params.get_param('azure.token'),
+                                            project=project.name, start_date=start, end_date=end, on="CreatedDate", on2="ChangedDate")
+            print(all_workitem)
+            store_odoo(all_workitem) 
+        # params.set_param('azure.last.backup.date', end)
+
+
+
+class he(models.Model):
+    _inherit = "hr.employee"
+
+    @api.model
+    def create(self, val):
+        print(val)
+        return super(he, self).create(val)
+
+    @api.model
+    def wrrite(self, val):
+        print(val)
+        return super(he, self).write(val)

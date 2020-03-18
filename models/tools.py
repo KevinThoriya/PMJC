@@ -7,57 +7,40 @@ import json
 import pprint as pp
 import requests
 
-def getheader(personal_access_token):
-    
-    USERNAME = ""
-    USER_PASS = USERNAME + ":" + personal_access_token
-    B64USERPASS = base64.b64encode(USER_PASS.encode()).decode()
-
-    HEADERS = {
-        'Authorization': 'Basic %s' % B64USERPASS
-    }
-
-def query_azure(org_url, personal_access_token, query):
-    client = TFSAPI(org_url, pat=personal_access_token)
-    wiql = client.run_wiql(query)
-    return wiql.workitems
-
-def get_project(org_url, personal_access_token):
-    client = TFSAPI(org_url, pat=personal_access_token)
+def work_items(org_url, personal_access_token, project='', start_date='2020-03-01', end_date='2021-03-01', on='ChangedDate', on2='CreatedDate'):
     """
-    :return: array of all project with id, name,url,state,visibility,lsatUpdateTime
-    """
-    all_projects = requests.get(org_url + '_apis/projects?api-version=5.1' ,headers=getheader(personal_access_token))
-    # responce = json.dumps(all_projects.json())
-    if all_projects.status_code == 200:
-        responce = (all_projects.json())
-        return responce['value']
+    desc : get the workitems from azure and return a array of dict that contains all workitems
 
-def work_items(org_url, personal_access_token, date='2020-02-27', on='ChangedDate', on2=False):
-    client = TFSAPI(org_url, pat=personal_access_token)
-    """
-    :rtype: bytearray
-    :param date: fatch workietms on specific date
-    :param on: AcceptedValues are => [ChangedDate, CreatedDate, etc ]
+    :rtype: Array
+    :param : web url of azure workspace
+    :param :personal access token for authentication
+    :param project: project name for which it will return workitems
+    :param start_date: start date of which workitem are created or changed
+    :param end_date: end date of which workitem are created or changed
+    :param on: AcceptedValues are => [ChangedDate, CreatedDate, AssignedDate etc ]
+    :param on2: AcceptedValues are => [ChangedDate, CreatedDate, AssignedDate etc ]
     :return: array of workitems
     """
-    relate_workitem_field = []
-    lastdate = date #"2020-02-22"
-    query1 = f"""select System.Id from workitems WHERE [System.{on}] = '{lastdate}'"""
-    if on2 : query1 += f"OR [System.{on2}] = '{lastdate}'"
-    workitems = query_azure(org_url, personal_access_token, query1)
-    # print("--------------> total workitems : " , len(workitems))
-
-    def finalize_name(string):
+    def finalize_name(string): #get string='name <email>' return array ['name', 'email']
         if string :
-            aname = ['', '']
             string = str(string)
-            startE = string.find('<')
-            endE = string.find('>')
-            aname[0] = string[:startE - 1].replace('.', ' ').title()
-            aname[1] = string[startE+1:endE]
+            aname = ['', '']
+            starte = string.find('<')
+            ende = string.find('>')
+            aname[0] = string[:starte - 1].replace('.', ' ').title()
+            aname[1] = string[starte+1:ende]
             return aname
         return None
+
+    client = TFSAPI(org_url , pat=personal_access_token)
+    all_workitems  = []
+    query = f"""select System.Id from workitems 
+                    WHERE [System.{on}] > '{start_date}' and [System.{on}] <= '{end_date}'
+                    and [System.{on2}] > '{start_date}' and [System.{on2}] <= '{end_date}'
+                    and [System.TeamProject] = '{project}'
+                    """
+
+    workitems = client.run_wiql(query).workitems #runs a query and fetch workitems
 
     for workitem in workitems:
         workitem_ob = {
@@ -85,60 +68,5 @@ def work_items(org_url, personal_access_token, date='2020-02-27', on='ChangedDat
             'description': workitem['System.Description'],
             'color' : 0
         }
-        relate_workitem_field.append(workitem_ob)
-        # print( f"Id :-  {id} parent :- {parent} childs :- {childs} title:- {title} {created_by} Created_date :- {created_date} ")
-    # print(relate_workitem_field)
-    # return workitems will return whole TFS object..
-    return relate_workitem_field
-
-def get_work_item_type(org_url, personal_access_token, ):
-    """
-    :param project: project from which you want to fetch workitemstype
-    :return: array of workitem_type names
-    """
-    
-    client = TFSAPI(org_url, pat=personal_access_token)
-    project=get_project(org_url, personal_access_token)[0]['name']
-    url = org_url + project
-    response = requests.get(url + '/_apis/wit/workitemtypes?api-version=5.1' , headers=getheader(personal_access_token))
-    work_item_types = []
-    if response.status_code == 200:
-        work_item_type = response.json()
-        for i in work_item_type['value']:
-            work_item_types.append(i['name'])
-    return work_item_types
-
-def get_project_team(org_url, personal_access_token):
-    client = TFSAPI(org_url, pat=personal_access_token)
-    url = org_url + '/_apis/teams?api-version=5.1-preview.3'
-    all_project_teams = requests.get( url , headers=getheader(personal_access_token))
-    if all_project_teams.status_code == 200:
-        responce = (all_project_teams.json())
-        return responce['value']
-
-def get_all_iteration(org_url, personal_access_token):
-    client = TFSAPI(org_url, pat=personal_access_token)
-    project=get_project(org_url, personal_access_token)[0]['name']
-    team=get_project_team(org_url, personal_access_token,)[0]['name']
-    url = org_url + f'/{project}/{team}/_apis/work/teamsettings/iterations?api-version=5.1'
-    iterations = []
-    all_project_iteration = requests.get( url , headers=getheader(personal_access_token))
-    if all_project_iteration.status_code == 200:
-        responces = (all_project_iteration.json())
-        for responce in responces['value']:
-            # print(dir(responce["value"]))
-            iterations.append({
-                'id' : responce['id'],
-                'name' : responce['name'],
-                'path' : responce['path'],
-                'start_date' : responce['attributes']['startDate'],
-                'finish_date' : responce['attributes']['finishDate'],
-                'time_frame' : responce['attributes']['timeFrame'],
-            })
-        return iterations
-    else : return False
-
-# print([i['name'] for i in get_all_iteration()])
-# print(client.get_workitem(12390).__dict__)
-# work_items()
-# print(get_project()[0]['name'])
+        all_workitems.append(workitem_ob)
+    return all_workitems
