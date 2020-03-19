@@ -1,0 +1,7 @@
+/.settings/*
+/**/*.pyc
+/**/**/*.pyc
+*.pyc
+.vscode/*
+*.DS_Store
+.idea/*
