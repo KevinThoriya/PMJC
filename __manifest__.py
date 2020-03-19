@@ -15,6 +15,7 @@
     'depends': ['base',
                 'analytic',
                 'crm',
+                'account',
                 'project',
                 'hr_timesheet'
                 ],

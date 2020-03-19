@@ -1,3 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from . import models
+from . import hr_employee
+from . import project_forecasting_input
+from . import project_milestone
+from . import project_project
+from . import project_task
+from . import res_users

@@ -1,78 +1,98 @@
 <odoo>
     <data>
         <record id="inherit_project_edit_view" model="ir.ui.view">
-        <field name="name">project.project.view.form</field>
-        <field name="model">project.project</field>
-        <field name="inherit_id" ref="project.edit_project"/>
-        <field name="arch" type="xml">
+            <field name="name">project.project.view.form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
 
-            <xpath expr="//notebook" position="before">
-                <group>
+                <xpath expr="//notebook" position="before">
                     <group>
-                        <field name="group_id"/>
-                        <field name="start_date"/>
-                        <field name="expected_end_date"/>
-                        <field name="expiration_date"/>
-                        <field name="priority"/>
-                        <field name="unit_of_measure"/>
-                        <field name="timesheet_grouping"/>
+                        <group>
+                            <field name="group_id"/>
+                            <field name="start_date"/>
+                            <field name="expected_end_date"/>
+                            <field name="expiration_date"/>
+                            <field name="priority"/>
+                            <field name="unit_of_measure"/>
+                            <field name="timesheet_grouping"/>
+                        </group>
+                        <group>
+                            <field name="currency_id"/>
+                            <field name="amount"/>
+                            <field name="unit_measure"/>
+                            <field name="billing_rate"/>
+                            <field name="Actual_rate"/>
+                        </group>
                     </group>
-                    <group>
-                        <field name="currency_id"/>
-                        <field name="amount"/>
-                        <field name="unit_measure"/>
-                        <field name="billing_rate"/>
-                        <field name="Actual_rate"/>
-                    </group>
-                </group>
-            </xpath>
+                </xpath>
 
-            <xpath expr="//notebook/page[@name='settings']" position="after">
-                <page string="Milestones">
+                <xpath expr="//notebook/page[@name='settings']" position="after">
+                    <page string="Milestones">
 
-                    <field name="milestone_ids">
-                        <tree editable="bottom">
-                            <field name="start_date" />
-                            <field name="name" />
-                            <field name="amount" />
-                            <field name="expected_delivery_date" />
-                            <field name="actual_delivery_date" />
-                            <field name="status" />
-                            <field name="invoice_id" />
-                            <field name="invoice_line" />
-                            <field name="approval_date" />
-                            <field name="project_id" />
-                        </tree>
-                    </field>
-                </page>
-                <page string="Employees">
-                    <field name="employee_ids"></field>
-                </page>
-                <page string="Cost Rates">
+                        <field name="milestone_ids">
+                            <tree editable="bottom">
+                                <field name="start_date" />
+                                <field name="name" />
+                                <field name="amount" />
+                                <field name="expected_delivery_date" />
+                                <field name="actual_delivery_date" />
+                                <field name="status" />
+                                <field name="invoice_id" />
+                                <field name="invoice_line_id" />
+                                <field name="approval_date" />
+                                <field name="project_id" />
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Employees">
+                        <field name="employee_ids"></field>
+                    </page>
+                    <page string="Cost Rates">
 
-                    <field name="cost_rate_ids">
-                        <tree editable="bottom">
-                                <field name="employee_id"></field>
-                                <field name="cost_rate"></field>
-                                <field name="is_billable"></field>
-                                <field name="billing_percent"></field>
-                                <field name="project_id"></field>
-                        </tree>
-                    </field>
-                </page>
-                <page string="approved rate">
-                    <field name="approved_rate_ids">
-                        <tree editable="bottom">
-                                <field name="unit_of_measure"></field>
-                                <field name="rate"></field>
-                                <field name="project_id"></field>
-                        </tree>
-                    </field>
-                </page>
-            </xpath>
+                        <field name="cost_rate_ids">
+                            <tree editable="bottom">
+                                    <field name="employee_id"></field>
+                                    <field name="cost_rate"></field>
+                                    <field name="is_billable"></field>
+                                    <field name="billing_percent"></field>
+                                    <field name="project_id"></field>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="approved rate">
+                        <field name="approved_rate_ids">
+                            <tree editable="bottom">
+                                    <field name="unit_of_measure"></field>
+                                    <field name="rate"></field>
+                                    <field name="project_id"></field>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
 
-        </field>
-    </record>
+            </field>
+        </record>
+
+<!--        #invoice action button-->
+         <record id="project_invoice_action" model="ir.actions.act_window">
+            <field name="name">Invoices</field>
+            <field name="res_model">account.invoice</field>
+            <field name="view_type">tree</field>
+            <field name="view_mode">kanban,tree,form</field>
+             <field name="domain">[]</field>
+             <field name="context">{}</field>
+<!--            <field name="domain">[('project_id','=',active_id)]</field>-->
+<!--            <field name="context">{'default_project_id': active_id}</field>-->
+        </record>
+<!--        #forcasting input action-->
+         <record id="project_forecating_input_action" model="ir.actions.act_window">
+            <field name="name">Forcasting Input</field>
+            <field name="res_model">project.forecasting</field>
+            <field name="view_type">tree</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'default_project_id': active_id}</field>
+        </record>
 
         <record id="ModelName_form_inherit" model="ir.ui.view">
             <field name="name">project.project.form.new</field>
@@ -81,12 +101,10 @@
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
                 <xpath expr="//sheet//div[@name='button_box']" position="inside">
-                    <button name="invoice_button" string="Invoice" class="oe_stat_button"
-                            icon="fa-pencil-square-o"/>
-                    <button name="forecast_button" string="Forecast" class="oe_stat_button"
-                            icon="fa-line-chart"/>
-                    <button name="approved_rate_button" string="Approved Rate" class="oe_stat_button"
-                            icon="fa-money"/>
+                    <button name="%(project_invoice_action)d" string="Invoice" class="oe_stat_button" type="action"
+                            icon="fa-pencil-square-o"></button>
+                    <button name="%(project_forecating_input_action)d" string="Forecast" class="oe_stat_button" type="action"
+                            icon="fa-line-chart"></button>
                 </xpath>
             </field>
         </record>
