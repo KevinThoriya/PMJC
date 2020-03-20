@@ -5,7 +5,9 @@
             <field name="model">project.project</field>
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="arch" type="xml">
-
+                <xpath expr="//sheet" position="before">
+                    <button name="%(azure_data_fetch_action)d" string="Get Azure Data Now" type="action" class="oe_highlight" />
+                </xpath>
                 <xpath expr="//notebook" position="before">
                     <group>
                         <group>

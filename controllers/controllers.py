@@ -13,7 +13,7 @@ from odoo import http
 #             'objects': http.request.env['aproject.aproject'].search([]),
 #         })
 
-#     @http.route('/aproject/aproject/objects/<model("aproject.aproject"):obj>/', auth='public')
+#     @http.route('/aproject/aproject/objects/<models("aproject.aproject"):obj>/', auth='public')
 #     def object(self, obj, **kw):
 #         return http.request.render('aproject.object', {
 #             'object': obj

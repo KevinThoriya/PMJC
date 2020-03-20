@@ -1,0 +1,31 @@
+<odoo>
+    <data>
+        <record id='project_azure_form' model='ir.ui.view'>
+            <field name="name">project.azure.view</field>
+            <field name="model">project.azure</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="project_id" string="project name"></field>
+                        <field name="start_date" string="From"></field>
+                        <field name="end_date" string="Till"></field>
+                    </group>
+                    <footer>
+                        <button name="fetch_workitem" string="Fetch Azure Data" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-default" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="azure_data_fetch_action" model="ir.actions.act_window">
+            <field name="name">Azure Project Data</field>
+            <field name="res_model">project.azure</field>
+            <field name="view_mode">form</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="project_azure_form"/>
+            <field name="target">new</field>
+            <field name="context">{'default_project_id': active_id}</field>
+        </record>
+    </data>
+</odoo>

@@ -22,14 +22,14 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        # 'security/ir.models.access.csv',
         'security/groups.xml',
+        'widget/views/views.xml',
+        'widget/views/project_azure.xml',
         'views/templates.xml',
         'views/crone_job.xml',
-        # 'views/views.xml',
         'views/views_workitem.xml',
         'views/project_project.xml',
-        'widget/views/views.xml'
     ],
     # only loaded in demonstration mode
     'demo': [
