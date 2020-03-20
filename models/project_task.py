@@ -89,8 +89,7 @@ class ProjectTask(models.Model):
             if this.type == 'Task':
                 this.effective_hours = sum([i.complete_work_hour for i in this.task_update_ids])
                 this.planned_hours = this.task_update_ids[-1].original_estimate_hour if this.task_update_ids else 0.0
-                this.remaining_hours = this.task_update_ids[
-                    -1].remaining_work_hour if this.task_update_ids else 0.0  # sum([i.remaining_work_hour for i in this.task_update_ids])
+                this.remaining_hours = this.task_update_ids[-1].remaining_work_hour if this.task_update_ids else 0.0
             else:
                 this.planned_hours = sum([i.planned_hours for i in this.child_ids])
                 this.effective_hours = sum([i.effective_hours for i in this.child_ids])
@@ -100,31 +99,47 @@ class ProjectTask(models.Model):
                 this.progress = 100
             else:
                 this.progress = (this.effective_hours * 100) / (
-                            this.effective_hours + this.remaining_hours) if this.effective_hours + this.remaining_hours > 0 else 0
+                        this.effective_hours + this.remaining_hours) if this.effective_hours + this.remaining_hours > 0 else 0
 
     def get_azure_data(self):
 
-        def get_emp(ar, project):
+        def get_user(ar, project):
             """
             :param ar: array contain [<name>,<email>]
             :return :odoo id of res user
             """
-            if not ar: return None
-            emp = self.env['res.users'].search([('login', '=', ar[1])])
-            if emp:
-                return emp[0].id
-            else:
-                emp = self.env['res.users'].create(
+            if not ar:
+                return None
+            user = self.env['res.users'].search([('login', '=', ar[1])])
+            if user:  # finding user in res.user
+                if not user.employee_id: # if end_user delete hr.employee
+                    emp = self.env['hr.employee'].create(
+                        {'name': user.name, 'work_email': user.login, 'user_id': user.id})
+                    user.employee_id = emp.id  # setting new employee in hr.employee
+
+                if not project.id in [i.id for i in user.employee_id.project_ids]:  # check that project is set for that user->emp
+                    emp = user.employee_id
+                    emp_rate = self.env['project.cost.rate'].create({
+                        'project_id': project.id, 'employee_id': emp.id,
+                        'cost_rate': project.actual_rate, 'is_billable': True,
+                        'billing_percent': 100
+                    })  # adding entry in cost rate model for the employee related to that project
+                    emp.project_ids = [(4, project.id, None)]  # adding entry in employee field of project
+
+                return user[0].id
+
+            else:  # res.user not found
+                user = self.env['res.users'].create(
                     {'name': ar[0], 'login': ar[1], 'password': '123'})
 
-                emp.employee_id.project_ids = [(4, project.id, None)]  # adding extry in employee field of project
-
-                self.env['project.cost.rate'].create({
-                    'project_id': project.id, 'employee_id': emp.employee_id.id,
-                    'cost_rate': project.billing_rate, 'is_billable': True,
+                emp_rate = self.env['project.cost.rate'].create({
+                    'project_id': project.id, 'employee_id': user.employee_id.id,
+                    'cost_rate': project.actual_rate, 'is_billable': True,
                     'billing_percent': 100
                 })  # adding entry in cost rate model for all the employee related to that project
-                return emp.id
+                user.employee_id.project_ids = [(4, project.id, None)]  # adding extry in employee field of project
+
+                return user.id
 
         def store_odoo(all_workitem):
             """
@@ -160,22 +175,18 @@ class ProjectTask(models.Model):
                     workitem['project_id'] = project.id
 
                 # setting employee create new is not assigning to RES.USERS
-                workitem['user_id'] = get_emp(workitem['user_id'], project)
-                workitem['created_by_id'] = get_emp(workitem['created_by_id'], project)
-                workitem['changed_by_id'] = get_emp(workitem['changed_by_id'], project)
+                workitem['user_id'] = get_user(workitem['user_id'], project)
+                workitem['created_by_id'] = get_user(workitem['created_by_id'], project)
+                workitem['changed_by_id'] = get_user(workitem['changed_by_id'], project)
 
                 # setting the stage
-                if self.azure_id == 13005: print("here next ....")
-                if self.azure_id == 13054: print(workitem['stage_id'])
                 stage = self.env['project.task.type'].search([('name', '=', workitem['stage_id'])], limit=1)
                 if stage:
-                    if self.azure_id == 13054: print("stage", stage)
                     workitem['stage_id'] = stage[0].id
                 else:
                     res = self.env['project.task.type'].create({'name': workitem['stage_id'], 'fold': False,
                                                                 'description': 'Azure Creation '})
                     workitem['stage_id'] = res.id
-                    if self.azure_id == 13054: print(res)
                 # setting Iteration to Tasks :
                 iteration_id = self.env['project.iteration'].search([('azure_id', '=', workitem['iteration_id']),
                                                                      ('project_id', '=', workitem['project_id'])])
@@ -244,8 +255,8 @@ class ProjectTask(models.Model):
         end = datetime.datetime.today().strftime('%Y-%m-%d')
 
         for project in self.env['project.project'].search([]):
-            all_workitem = tools.work_items(params.get_param('azure.web.address'), params.get_param('azure.token'),
+            all_workitems = tools.work_items(params.get_param('azure.web.address'), params.get_param('azure.token'),
                                             project=project.name, start_date=start, end_date=end, on="CreatedDate",
                                             on2="ChangedDate")
-            store_odoo(all_workitem)
+            store_odoo(all_workitems)
         # params.set_param('azure.last.backup.date', end)

@@ -22,7 +22,7 @@
                             <field name="amount"/>
                             <field name="unit_measure"/>
                             <field name="billing_rate"/>
-                            <field name="Actual_rate"/>
+                            <field name="actual_rate"/>
                         </group>
                     </group>
                 </xpath>

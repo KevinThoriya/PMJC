@@ -15,7 +15,7 @@ class Project(models.Model):
     amount = fields.Monetary(currency_field='currency_id')
     unit_measure = fields.Selection([('byWeek', 'by week'), ('byMonth', 'by month'), ('byHour', 'by Hour')])
     billing_rate = fields.Float(string="Billing Rate")
-    Actual_rate = fields.Float(string="actual Rate")
+    actual_rate = fields.Float(string="actual Rate")
     cost_rate_ids = fields.One2many('project.cost.rate', 'project_id', string="Cost Rate")
     approved_rate_ids = fields.One2many('project.approved.rate', 'project_id', string="Approved Rate")
     unit_of_measure = fields.Selection(string="Default Unit of Measure", selection=[('week', 'By Week'), ('hour', 'By Hour'), ('month', 'By Month')])
@@ -40,8 +40,8 @@ class CostRate(models.Model):
     _description = 'CostRate'
 
     employee_id = fields.Many2one('hr.employee', string='Employee')
-    cost_rate = fields.Char("Cost Rate")
-    is_billable = fields.Boolean("is_billable?")
+    cost_rate = fields.Integer(string="Cost Rate")
+    is_billable = fields.Boolean(string="is_billable?")
     billing_percent = fields.Integer(string='Billing %', required=False)
     project_id = fields.Many2one('project.project', string="Project")
 
