@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="forecast_output_view_tree" model="ir.ui.view">
+            <field name="name">forecast_output_view_tree</field>
+            <field name="model">project.forecasting.output</field>
+            <field name="arch" type="xml">
+                <tree string="forecast_output_tree">
+                    <field name="project_id"/>
+                    <field name="employee_id"/>
+                    <field name="date"/>
+                    <field name="iteration"/>
+                    <field name="week"/>
+                    <field name="actual_hours"/>
+                    <field name="actual_amount"/>
+                    <field name="is_billable"/>
+                    <field name="billing_percent"/>
+                    <field name="billing_hour"/>
+                    <field name="billing_amount"/>
+                </tree>
+            </field>
+        </record>
+
+         <record id="forecast_output_action" model="ir.actions.server">
+            <field name="model_id" ref="model_project_forecasting_output"/>
+            <field name="state">code</field>
+            <field name="code">
+                action = model.get_forecast()
+            </field>
+            <field name="name">Forecast Output</field>
+        </record>
+
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="forecast_output" name="Forecast Output" parent="project_management.forecasting_root" action="forecast_output_action" sequence="2"/>
+
+    </data>
+</odoo>

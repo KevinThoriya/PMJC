@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="forecasting_input_view_tree" model="ir.ui.view">
+            <field name="name">forecasting_input_view_tree</field>
+            <field name="model">project.forecasting.input</field>
+            <field name="arch" type="xml">
+                <tree string="forecasting_input_tree" editable="bottom">
+                    <field name="is_selectable"/>
+                    <field name="employee_id"/>
+                    <field name="project_id"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="actual_hours"/>
+                    <field name="billing"/>
+                    <field name="billing_percentage"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="forecast_input_search_view" model="ir.ui.view">
+           <field name="name">Forecast Ibput Search</field>
+           <field name="model">project.forecasting.input</field>
+            <field name="arch" type="xml">
+                <search string="search view">
+                    <field name="project_id"/>
+                    <field name="employee_id"/>
+                    <filter name="is_billable" string="is billable true" domain="[('billing','=',True)]"/>
+                    <filter name="is_billable" string="is billable false" domain="[('billing','=',False)]"/>
+                    <group>
+                        <filter name="project" string="by project" context="{'group_by':'project_id'}"/>
+                        <filter name="employee" string="by employee" context="{'group_by':'employee_id'}"/>
+                    </group>
+            </search>
+           </field>
+        </record>
+        
+        <record id="forecasting_input_action" model="ir.actions.act_window">
+            <field name="name">Forecasting Input</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">project.forecasting.input</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+
+        <menuitem id="forecasting_root" name="Forecasting" />
+        <menuitem id="forecasting_input_menu" name="Forecasting Input" parent="forecasting_root" action="forecasting_input_action" sequence="1"/>
+
+    </data>
+</odoo>

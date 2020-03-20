@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="ir_attachmemnt_search" model="ir.ui.view">
+           <field name="name">Attachments</field>
+           <field name="model">ir.attachment</field>
+            <field name="arch" type="xml">
+                <search string="attachments">
+              <field name="expense_id"/>
+            </search>
+           </field>
+        </record>
+
+        <record id="project_attachment_action" model="ir.actions.act_window">
+            <field name="name">Project_attachments</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ir.attachment</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_expense_id':active_id,'default_expense_id':active_id}</field>
+        </record>
+
+         <record id="project_expense_view_form" model="ir.ui.view">
+            <field name="name">Create Project Expense</field>
+            <field name="model">project.expense</field>
+            <field name="arch" type="xml">
+                <form string="project_expense_form">
+
+                    <sheet>
+                        <div class="oe_button_box">
+                            <button
+                                name="%(project_management.project_attachment_action)d"
+                                type="action" class="oe_stat_button" icon="fa-chain" string="Attachments">
+                               </button>
+
+                    </div>
+                        <div class="oe_title">
+                             <label for="name"/>
+                            <h1><field name="name"/></h1>
+                        </div>
+
+                        <group>
+                            <group>
+                            <field name="date"/>
+                            <field name="project_id"/>
+                            <field name="ref_no"/>
+                            <field name="vendor"/>
+                        </group>
+                        <group>
+                            <field name="quantity"/>
+                            <field name="cost_price"/>
+                            <field name="is_billable"/>
+                            <field name="billing_amount"/>
+                        </group>
+
+                         <group>
+                            <field name="status"/>
+                            <field name="invoice"/>
+                            <field name="invoice_line"/>
+
+                        </group>
+                        </group>
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="project_expense_view_tree" model="ir.ui.view">
+            <field name="name">Project Expenses</field>
+            <field name="model">project.expense</field>
+            <field name="arch" type="xml">
+                <tree string="project_expense_tree">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="project_id"/>
+                    <field name="quantity"/>
+                    <field name="cost_price"/>
+                    <field name="is_billable"/>
+                    <field name="billing_amount"/>
+                    <field name="status"/>
+                    <field name="invoice"/>
+                    <field name="invoice_line"/>
+                </tree>
+            </field>
+        </record>
+        
+
+        <record id="project_expense_kanban" model="ir.ui.view">
+         <field name="name">Project Expenses</field>
+          <field name="model">project.expense</field>
+         <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="project_id"/>
+                <field name="quantity"/>
+                <field name="cost_price"/>
+                <field name="status"/>
+         <templates>
+         <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <strong class="o_kanban_record_title"><span><b><t t-esc="record.name.value"/></b></span></strong>
+                                        <strong class="o_kanban_record_subtitle pull-right"><span class="text-right"><t t-esc="record.cost_price.value"/></span></strong>
+                                    </div>
+                                </div>
+                                <div class="row mt8">
+                                    <div class="col-xs-9">
+<!--                                        <span><t t-esc="record.project_id.value"/> <t t-esc="record.date.value"/></span>-->
+                                            <field name="project_id"/>
+
+                                        <div>
+                                            <field name="date"/>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <span class="pull-left text-left">
+                                            <field name="status" widget="label_selection"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+         </templates>
+         </kanban>
+         </field>
+        </record>
+
+        <record id="project_expense_search_view" model="ir.ui.view">
+           <field name="name">project_expense_search_view</field>
+           <field name="model">project.expense</field>
+            <field name="arch" type="xml">
+                <search string="expense_search_view">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="project_id"/>
+                    <field name="invoice"/>
+                    <field name="invoice_line"/>
+
+                    <filter name="is_billable" string="billable is True" domain="[('is_billable','=',True)]"/>
+                    <filter name="is_billable" string="billable is False" domain="[('is_billable','=',False)]"/>
+                    <separator/>
+                    <filter name="status" string="status_invoiced" domain="[('status','=','invoiced')]"/>
+
+                    <group>
+                        <filter name="project_id" string="by_project" context="{'group_by':'project_id'}"></filter>
+                        <filter name="status" string="invoice status" context="{'group_by':'status'}"></filter>
+                    </group>
+
+            </search>
+           </field>
+        </record>
+
+        <record id="project_expense_action" model="ir.actions.act_window">
+            <field name="name">Project Expenses</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">project.expense</field>
+            <field name="view_mode">tree,form,kanban</field>
+        </record>
+
+        <!-- This Menu Item will appear in the Upper bar, That's why It needs NO parent or action -->
+        <menuitem id="project_expense_root" name="Project Expense"/>
+
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="project_expense_menu" name="Expenses" parent="project_expense_root" action="project_expense_action" sequence="1"/>
+    </data>
+</odoo>

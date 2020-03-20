@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_project_expense,access_project_expense,model_project_expense,base.group_user,1,0,0,0
+access_project_recurring_expense,access_project_recurring_expense,model_project_recurring_expense,base.group_user,1,0,0,0
+access_project_forecasting_input,access_project_forecasting_input,model_project_forecasting_input,base.group_user,1,0,0,0
