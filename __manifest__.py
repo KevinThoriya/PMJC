@@ -24,9 +24,10 @@
     'data': [
         # 'security/ir.models.access.csv',
         'security/groups.xml',
-        'widget/views/views.xml',
+        'widget/views/q_p_wizard.xml',
         'widget/views/project_azure.xml',
-        'views/templates.xml',
+        'views/sys_para.xml',
+        'views/res_inherit.xml',
         'views/crone_job.xml',
         'views/views_workitem.xml',
         'views/project_project.xml',

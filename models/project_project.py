@@ -4,7 +4,7 @@ import datetime
 
 
 class ProjectGroup(models.Model):
-    _name = "project.groups"
+    _name = "project.group"
 
     name = fields.Char(string="Name of Group")
     active = fields.Boolean(string="active", default=True)
@@ -33,7 +33,7 @@ class ApprovedRate(models.Model):
 class Project(models.Model):
     _inherit = "project.project"
 
-    group_id = fields.Many2one('project.groups', string="Project Group")
+    group_id = fields.Many2one('project.group', string="Project Group")
     start_date = fields.Date()
     expected_end_date = fields.Date()
     expiration_date = fields.Date()
@@ -44,15 +44,17 @@ class Project(models.Model):
     amount = fields.Monetary(currency_field='currency_id')
     unit_measure = fields.Selection([('byWeek', 'by week'), ('byMonth', 'by month'), ('byHour', 'by Hour')])
     billing_rate = fields.Float(string="Billing Rate")
-    actual_rate = fields.Float(string="actual Rate")
-    cost_rate_ids = fields.One2many('project.cost.rate', 'project_id', string="Cost Rate")
+    actual_rate = fields.Float(string="Cost Rate")
+    cost_rate_ids = fields.One2many('project.cost.rate', 'project_id', string="Cost Rate By Employee")
     approved_rate_ids = fields.One2many('project.approved.rate', 'project_id', string="Approved Rate")
     unit_of_measure = fields.Selection(string="Default Unit of Measure", selection=[('week', 'By Week'), ('hour', 'By Hour'), ('month', 'By Month')])
     timesheet_grouping = fields.Selection(string="Default Timesheet Grouping", selection=[('week', 'By Week'), ('hour', 'By Hour'), ('month', 'By Month')])
+    state = fields.Selection([('draft', 'Quotation'), ('sent', 'Quotation Sent'), ('project', 'Project'), ('done', 'Locked'), ('cancel', 'Cancelled')], default='draft')
 
     @api.model
     def create(self, val):
         res = super(Project, self).create(val)
+        #  this should be run when qoutation is change to project
         self.env['project.approved.rate'].create({'unit_of_measure':  'hour', 'rate': res.billing_rate, 'project_id': res.id})
         return res
 

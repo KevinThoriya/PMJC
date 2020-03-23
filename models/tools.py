@@ -2,15 +2,11 @@
 
 from tfs import TFSAPI
 
-import base64
-import json
-import pprint as pp
-import requests
 
-def work_items(org_url, personal_access_token, project='', start_date='2020-03-01', end_date='2021-03-01', on='ChangedDate', on2='CreatedDate'):
+def work_items(org_url, personal_access_token, project='', start_date='2020-03-01', end_date='2021-03-01',
+               on='ChangedDate', on2='CreatedDate'):
     """
     desc : get the workitems from azure and return a array of dict that contains all workitems
-
     :rtype: Array
     :param : web url of azure workspace
     :param :personal access token for authentication

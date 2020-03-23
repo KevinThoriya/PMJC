@@ -74,8 +74,8 @@ class ProjectTask(models.Model):
                                      help="Total Time on This Task. = remaining + compeleted")
 
     @api.depends('created_date')
-    def _compute_week(selfs):
-        for self in selfs:
+    def _compute_week(each):
+        for self in each:
             if self.created_date:
                 created_date = datetime.datetime.strptime(self.created_date, "%Y-%m-%d")
                 cal = created_date.isocalendar()

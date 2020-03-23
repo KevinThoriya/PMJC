@@ -6,13 +6,14 @@
             <field name="arch" type="xml">
                 <form>
                     <group>
-                        <field name="name" string="project name"></field>
-                        <field name="user_id" ></field>
-                        <field name="partner_id" ></field>
-                        <field name="group_id" ></field>
+                        <field name="name" string="project name"/>
+                        <field name="user_id" />
+                        <field name="partner_id" />
+                        <field name="group_id" />
+                        <field name="billing_rate" required="1"/>
                     </group>
                     <footer>
-                        <button name="create_project" string="Create Project" type="action" class="btn-primary"/>
+                        <button name="create_project" string="Create Project" type="object" class="btn-primary"/>
                         <button string="Cancel" class="btn-default" special="cancel" />
                     </footer>
                 </form>
