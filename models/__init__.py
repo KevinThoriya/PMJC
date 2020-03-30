@@ -5,4 +5,3 @@ from . import project_milestone
 from . import project_project
 from . import project_task
 from . import res
-from . import project_forecating_input

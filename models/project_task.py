@@ -5,31 +5,33 @@ import datetime
 class ProjectAreapath(models.Model):
     _name = "project.areapath"
 
-    name = fields.Char()
-    active = fields.Boolean(default=True)
-    project_id = fields.Many2one('project.project')
+    name = fields.Char(string="Name", required=True)
+    active = fields.Boolean(string="Active", default=True)
+    project_id = fields.Many2one('project.project', string="Project Name", ondelete='cascade')
 
 
 class ProjectIteration(models.Model):
     _name = "project.iteration"
 
-    name = fields.Char()
-    azure_id = fields.Char()
-    active = fields.Boolean(default=True)
-    startdate = fields.Date(default=fields.Date.context_today)
-    enddate = fields.Date()
-    project_id = fields.Many2one('project.project', string="project")
+    name = fields.Char(string="name", required=True)
+    azure_id = fields.Char(string="Azure Id")
+    path = fields.Char(string="Path")
+    active = fields.Boolean(string="Active", default=True)
+    startdate = fields.Date(string="Start Date", default=fields.Date.context_today)
+    enddate = fields.Date(string="End Date")
+    time_frame = fields.Char(string="Time Frame")
+    project_id = fields.Many2one('project.project', string="Project Name", ondelete='cascade')
 
 
 class ProjectTaskUpdate(models.Model):
     _name = "project.task.update"
 
-    changed_date = fields.Date(index=True)
+    changed_date = fields.Date(string="Change Date",index=True)
     changed_by_id = fields.Many2one('res.users', string='Changed By')
-    remaining_work_hour = fields.Float()
-    original_estimate_hour = fields.Float()
-    complete_work_hour = fields.Float()
-    task_id = fields.Many2one("project.task", string="Task")
+    remaining_work_hour = fields.Float(string="Remaining Work Hours")
+    original_estimate_hour = fields.Float(string="Original Estimate Hours")
+    complete_work_hour = fields.Float(string="Completed Work Hours")
+    task_id = fields.Many2one("project.task", string="Task Name", ondelete='cascade')
 
 
 class ProjectTask(models.Model):
@@ -37,20 +39,19 @@ class ProjectTask(models.Model):
 
     azure_id = fields.Char(string="Azure Id", index=True)
     areapath_id = fields.Many2one('project.areapath', string="AreaPath")
-    iteration_path = fields.Char()
+    iteration_path = fields.Char(string="Iteration Path")
     iteration_id = fields.Many2one('project.iteration', string="Iteration")
     week = fields.Char(compute="_compute_week", store=True, string="Week")
-    emp_id = fields.Many2one('hr.employee', string="Employee", related='user_id.employee_id', store=True)
+    emp_id = fields.Many2one('hr.employee', string="Employee Assigned To", related='user_id.employee_id', store=True)
     user_id = fields.Many2one('res.users', string='Assigned to', index=True, track_visibility=False, default=False,
                               related=False, store=True)
-    reason = fields.Char()
-    created_date = fields.Date(index=True)
+    reason = fields.Char(string="Reason")
+    created_date = fields.Date(string="Create Date", index=True)
     created_by_id = fields.Many2one('res.users', string='Created By')
-    priority = fields.Selection([(4, 4), (3, 3), (2, 2), (1, 1), ], default='1', string="Priority")
-    title = fields.Char()
-    description = fields.Html()
-    parent_task_id = fields.Many2one('project.task', string='Parent', default=None)
-    child_ids = fields.One2many('project.task', 'parent_task_id', string='Tasks', domain=[('active', '=', True)])
+    priority = fields.Selection(selection=[(4, 4), (3, 3), (2, 2), (1, 1),], default='1', string="Priority")
+    description = fields.Html(string="Description")
+    parent_task_id = fields.Many2one('project.task', string='Parent Task')
+    child_ids = fields.One2many('project.task', 'parent_task_id', string='Child Tasks', domain=[('active', '=', True)], ondelete='cascade')
     type = fields.Selection(selection=[('Bug', 'Bug'), ('Code Review Request', 'Code Review Request'),
                                        ('Code Review Response', 'Code Review Response'),
                                        ('Epic', 'Epic'), ('Feature', 'Feature'),
@@ -60,7 +61,7 @@ class ProjectTask(models.Model):
                                        ('Test Plan', 'Test Plan'), ('Test Suite', 'Test Suite'),
                                        ('User Story', 'User Story'), ('Issue', 'Issue'),
                                        ('Shared Parameter', 'Shared Parameter'), ('Task', 'Task'),
-                                       ('Change Request', 'Change Request')])
+                                       ('Change Request', 'Change Request')], string="Type")
     project_id = fields.Many2one('project.project', string="Project", index=True, track_visibility='onchange',
                                  default=lambda self: self.env.context.get('default_project_id'))
     stage_id = fields.Many2one('project.task.type', string='Stage', index=True, domain="[]",
@@ -100,3 +101,9 @@ class ProjectTask(models.Model):
                 this.progress = (this.effective_hours * 100) / (
                         this.effective_hours + this.remaining_hours) if this.effective_hours + this.remaining_hours > 0 else 0
 
+    @api.model
+    def name_get(self):
+        result = []
+        for i in self:
+            result.append((i.id, f"{i.type} {i.azure_id}- {i.name}"))
+        return result

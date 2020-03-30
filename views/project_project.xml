@@ -1,34 +1,102 @@
 <odoo>
     <data>
-        <record id="inherit_project_edit_view" model="ir.ui.view">
-            <field name="name">project.project.view.form</field>
+
+        <record id="project.open_view_project_all_config"  model="ir.actions.act_window" >
+            <field name="domain">[('state', 'in', ['project', 'done', 'cancel'] )]</field>
+        </record>
+
+        <record id="project.open_view_project_all"  model="ir.actions.act_window" >
+            <field name="domain">[('state', 'in', ['project', 'done', 'cancel'] )]</field>
+        </record>
+
+        <!--        #invoice action button-->
+         <record id="project_invoice_action" model="ir.actions.act_window">
+            <field name="name">Invoices</field>
+            <field name="res_model">account.invoice</field>
+            <field name="view_type">tree</field>
+            <field name="view_mode">kanban,tree,form</field>
+             <field name="domain">[]</field>
+             <field name="context">{}</field>
+        </record>
+<!--        # forcasting input action-->
+<!--         <record id="project_forecating_input_action" model="ir.actions.act_window">-->
+<!--            <field name="name">Forcasting Input</field>-->
+<!--            <field name="res_model">project.forecasting.input</field>-->
+<!--            <field name="view_type">tree</field>-->
+<!--            <field name="view_mode">tree,form</field>-->
+<!--            <field name="context">{'default_project_id': active_id}</field>-->
+<!--        </record>-->
+
+<!--        Timeshee entries-->
+        <record id="actual_timesheet_action" model="ir.actions.act_window">
+            <field name="inherit_id" ref="hr_timesheet.timesheet_action_all"/>
+            <field name="name">Actual Timesheet</field>
+            <field name="res_model">account.analytic.line</field>
+            <field name="domain">[('is_billable','=',False)]</field>
+            <field name="context">{'default_is_billable': True,'search_default_groupby_project_id': 1}</field>
+        </record>
+
+        <record id="billable_timesheet_action" model="ir.actions.act_window">
+            <field name="inherit_id" ref="hr_timesheet.timesheet_action_all"/>
+            <field name="name">Billable Timesheet</field>
+            <field name="res_model">account.analytic.line</field>
+            <field name="domain">[('is_billable','=',True)]</field>
+            <field name="context">{'default_is_billable': False,'search_default_groupby_project_id': 1}</field>
+        </record>
+
+        <record id="ModelName_form_inherit" model="ir.ui.view">
+            <field name="name">project.project.form.new</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="hr_timesheet.project_invoice_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@icon='fa-calendar']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="header_add_button_project" model="ir.ui.view">
+            <field name="name">project.project.header.form</field>
             <field name="model">project.project</field>
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="arch" type="xml">
                 <xpath expr="//sheet" position="before">
                     <header>
-                        <button name="%(azure_data_fetch_action)d" string="Get Azure Data Now" type="action" class="oe_highlight" />
-                        <field name="state"></field>
+                        <button name="%(azure_data_fetch_action)d" string="Get Azure Data Now" type="action" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ['project', 'done', 'cancel'] )]}" />
+                        <button name="%(q2p_widget_action)d" id="action_confirm" string="Confirm Project" class="btn-primary" type="action" attrs="{'invisible': [('state', 'not in', ['sent'])]}"/>
+                        <button name="%(q2p_widget_action)d" string="Confirm Project" type="action" attrs="{'invisible': [('state', 'not in', ['draft'])]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,project"/>
                     </header>
                 </xpath>
-                <xpath expr="//field[@name='privacy_visibility']" position="replace" />
+            </field>
+        </record>
+
+
+        <record id="inherit_project_edit_view" model="ir.ui.view">
+            <field name="name">project.project.view.form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='privacy_visibility']" position="attributes" >
+                    <attribute name="invisible">1</attribute>
+                </xpath>
                 <xpath expr="//notebook" position="before">
                     <group attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }">
-                        <group>
+                        <group string="Project Details">
                             <field name="group_id"/>
-                            <field name="start_date"/>
-                            <field name="expected_end_date"/>
-                            <field name="expiration_date"/>
-                            <field name="priority"/>
-                            <field name="unit_of_measure"/>
-                            <field name="timesheet_grouping"/>
-                        </group>
-                        <group>
                             <field name="currency_id"/>
                             <field name="amount"/>
-                            <field name="unit_measure"/>
-                            <field name="billing_rate"/>
-                            <field name="actual_rate"/>
+                            <field name="start_date"/>
+                            <field name="expected_end_date"/>
+                            <field name="expiration_date" invisible="1"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group string="For Timesheet">
+                            <field name="unit_of_measure"/>
+                            <field name="timesheet_grouping"/>
+                            <field name="billing_rate" required="1"/>
+                            <field name="actual_rate" required="1"/>
                         </group>
                     </group>
                 </xpath>
@@ -47,7 +115,7 @@
                                 <field name="invoice_id" />
                                 <field name="invoice_line_id" />
                                 <field name="approval_date" />
-                                <field name="project_id" />
+                                <field name="project_id" invisible="1" />
                             </tree>
                         </field>
                     </page>
@@ -76,61 +144,23 @@
                     </page>
                 </xpath>
 
-            </field>
-        </record>
 
-<!--        #invoice action button-->
-         <record id="project_invoice_action" model="ir.actions.act_window">
-            <field name="name">Invoices</field>
-            <field name="res_model">account.invoice</field>
-            <field name="view_type">tree</field>
-            <field name="view_mode">kanban,tree,form</field>
-             <field name="domain">[]</field>
-             <field name="context">{}</field>
-<!--            <field name="domain">[('project_id','=',active_id)]</field>-->
-<!--            <field name="context">{'default_project_id': active_id}</field>-->
-        </record>
-<!--        #forcasting input action-->
-         <record id="project_forecating_input_action" model="ir.actions.act_window">
-            <field name="name">Forcasting Input</field>
-            <field name="res_model">project.forecasting.input</field>
-            <field name="view_type">tree</field>
-            <field name="view_mode">tree,form</field>
-            <field name="context">{'default_project_id': active_id}</field>
-        </record>
-<!--        Timeshee entries-->
-        <record id="actual_timesheet_action" model="ir.actions.act_window">
-            <field name="inherit_id" ref="hr_timesheet.timesheet_action_all"/>
-            <field name="name">Actual Timesheet</field>
-            <field name="res_model">account.analytic.line</field>
-            <field name="domain">[('is_billable','=',False)]</field>
-            <field name="context">{'is_billable': True,'search_default_groupby_project_id': 1}</field>
-        </record>
-        <record id="billable_timesheet_action" model="ir.actions.act_window">
-            <field name="inherit_id" ref="hr_timesheet.timesheet_action_all"/>
-            <field name="name">Billable Timesheet</field>
-            <field name="res_model">account.analytic.line</field>
-            <field name="domain">[('is_billable','=',True)]</field>
-            <field name="context">{'is_billable': False,'search_default_groupby_project_id': 1}</field>
-        </record>
-
-        <record id="ModelName_form_inherit" model="ir.ui.view">
-            <field name="name">project.project.form.new</field>
-            <field name="model">project.project</field>
-            <field name="inherit_id" ref="project.edit_project"/>
-            <field name="priority" eval="8"/>
-            <field name="arch" type="xml">
                 <xpath expr="//sheet//div[@name='button_box']" position="inside">
                     <button name="%(project_invoice_action)d" string="Invoice" class="oe_stat_button" type="action"
                             icon="fa-pencil-square-o" attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }" />
-                    <button name="%(project_forecating_input_action)d" string="Forecast" class="oe_stat_button" type="action"
-                            icon="fa-line-chart" attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }" />
+<!--                    <button name="project_forecating_input_action" string="Forecast" class="oe_stat_button" type="action"-->
+<!--                            icon="fa-line-chart" attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }" />-->
                     <button name="%(actual_timesheet_action)d" string="Actual Timesheet" class="oe_stat_button" type="action"
-                            icon="fa-line-chart"  attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }"/>
+                            icon="fa-clock-o "  attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }"/>
                     <button name="%(billable_timesheet_action)d" string="Billable Timesheet" class="oe_stat_button" type="action"
-                            icon="fa-line-chart" attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }" />
+                            icon="fa-calendar" attrs="{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }" />
+                </xpath>
+
+                <xpath expr="//button[@icon='fa-tasks']" position="attributes">
+                    <attribute name="attrs">{'invisible' : [('state', 'not in', ['project', 'done', 'cancel'] )] }</attribute>
                 </xpath>
             </field>
         </record>
+
     </data>
 </odoo>

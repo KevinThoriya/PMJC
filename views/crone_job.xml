@@ -2,10 +2,10 @@
     <data>
     <record id="cron_do_task" forcecreate='True' model="ir.cron">
         <field name="name">Get Workitems and Tasks From Azure Devops</field>
-        <field eval="False" name="active"/>
+        <field eval="True" name="active"/>
         <field name="user_id" ref="base.user_root"/>
         <field name="interval_number">1</field>
-        <field name="interval_type">minutes</field>
+        <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="model_id" ref="model_project_project"/>
         <field name="state">code</field>

@@ -2,18 +2,19 @@
     <data>
         <record id='q2p_widget_form_view' model='ir.ui.view'>
             <field name="name">q2p.widget.form.view</field>
-            <field name="model">project.q2pwidget</field>
+            <field name="model">project.covert</field>
             <field name="arch" type="xml">
                 <form>
                     <group>
-                        <field name="name" string="project name"/>
-                        <field name="user_id" />
+                        <field name="name" />
+                        <field name="user_id"  />
                         <field name="partner_id" />
                         <field name="group_id" />
                         <field name="billing_rate" required="1"/>
+                        <field name="actual_rate" required="1" string="Cost Rate"/>
                     </group>
                     <footer>
-                        <button name="create_project" string="Create Project" type="object" class="btn-primary"/>
+                        <button name="covert_project" string="Create Project" type="object" class="btn-primary"/>
                         <button string="Cancel" class="btn-default" special="cancel" />
                     </footer>
                 </form>
@@ -22,12 +23,12 @@
 
         <record id="q2p_widget_action" model="ir.actions.act_window">
             <field name="name">Convert To Project</field>
-            <field name="res_model">project.q2pwidget</field>
+            <field name="res_model">project.covert</field>
             <field name="view_mode">form</field>
             <field name="view_type">form</field>
-            <field name="view_id" ref="aproject.q2p_widget_form_view"/>
+            <field name="view_id" ref="q2p_widget_form_view"/>
             <field name="target">new</field>
-            <field name="context">{'default_partner_id': active_id}</field>
+            <field name="context">{}</field>
         </record>
 
     </data>
